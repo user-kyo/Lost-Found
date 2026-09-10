@@ -1,0 +1,6 @@
+{
+  "name": "Smart Lost-and-Found System",
+  "description": "Civic lost-and-found platform for citizens and Local Government Units (LGU) with NLP attribute matching, claim verification, and smart storage locker management.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

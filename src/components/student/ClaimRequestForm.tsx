@@ -1,0 +1,273 @@
+import React, { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { 
+  ArrowLeft, 
+  ShieldCheck, 
+  Upload, 
+  CheckCircle2, 
+  AlertTriangle, 
+  HardDrive, 
+  FileText, 
+  User, 
+  Mail, 
+  Phone, 
+  Lock,
+  ArrowRight
+} from "lucide-react";
+
+export const ClaimRequestForm: React.FC = () => {
+  const { 
+    selectedItem, 
+    lastSubmittedReport, 
+    submitClaimRequest, 
+    setStudentView, 
+    setSelectedClaim 
+  } = useApp();
+
+  const [claimantName, setClaimantName] = useState(lastSubmittedReport?.studentName || "Maya Lin");
+  const [claimantId, setClaimantId] = useState(lastSubmittedReport?.studentId || "CTZ-2026-8941");
+  const [claimantType, setClaimantType] = useState<"Resident" | "Citizen" | "LGU Employee" | "Student" | "Faculty" | "Staff">("Citizen");
+  const [contactEmail, setContactEmail] = useState(lastSubmittedReport?.email || "maya.lin@civicnet.gov");
+  const [contactPhone, setContactPhone] = useState(lastSubmittedReport?.phone || "(555) 234-8901");
+  const [submittedDescription, setSubmittedDescription] = useState(
+    lastSubmittedReport?.rawDescription || "Black Jansport backpack with blue keychain attached to the front pocket."
+  );
+  const [proofOfOwnership, setProofOfOwnership] = useState(
+    "Inside the main pouch is an AP Chemistry textbook with my name 'Maya Lin' written on the cover, and the blue keychain has a house key stamped #204."
+  );
+  const [supportingImageUrl, setSupportingImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!selectedItem) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <p className="text-stone-500 text-sm">No item selected for claim.</p>
+        <button
+          onClick={() => setStudentView("search")}
+          className="px-4 py-2 bg-emerald-800 text-white rounded-xl text-xs font-semibold"
+        >
+          Return to Catalog
+        </button>
+      </div>
+    );
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    setTimeout(() => {
+      const newClaim = submitClaimRequest({
+        itemId: selectedItem.id,
+        lostReportId: lastSubmittedReport?.id,
+        claimantName,
+        claimantId,
+        claimantType,
+        contactEmail,
+        contactPhone,
+        submittedDescription,
+        proofOfOwnership,
+        supportingImageUrl: supportingImageUrl || undefined,
+        similarityScore: 94
+      });
+
+      setSelectedClaim(newClaim);
+      setIsSubmitting(false);
+      setStudentView("claim_tracking");
+    }, 600);
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-6 sm:space-y-8">
+      {/* Back Button & Header */}
+      <div>
+        <button
+          onClick={() => setStudentView("match_details")}
+          className="inline-flex items-center space-x-1.5 text-xs font-bold text-stone-600 hover:text-emerald-800 mb-3 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Match Comparison</span>
+        </button>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+          Submit Claim & Retrieval Request
+        </h1>
+        <p className="text-sm text-stone-500 mt-1">
+          Provide identification and verifiable proof of ownership for municipal officer review.
+        </p>
+      </div>
+
+      {/* Selected Item Mini-Card Preview */}
+      <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center space-x-4">
+        <img
+          src={selectedItem.imageUrl}
+          alt={selectedItem.title}
+          referrerPolicy="no-referrer"
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-stone-200 shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+              Item #{selectedItem.id}
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+              In Storage: {selectedItem.storageBoxId} • {selectedItem.storageSlotId}
+            </span>
+          </div>
+          <h3 className="text-sm sm:text-base font-bold text-stone-900 truncate mt-0.5">
+            {selectedItem.title}
+          </h3>
+          <p className="text-xs text-stone-600 truncate">
+            {selectedItem.color} • {selectedItem.brand} • Found: {selectedItem.foundLocation}
+          </p>
+        </div>
+      </div>
+
+      {/* Mandatory Notice */}
+      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start space-x-3 text-xs text-amber-900 leading-relaxed">
+        <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-bold">Ownership Verification Notice: </span>
+          Submitting a claim does not guarantee approval. Authorized municipal officers must verify ownership details against the stored physical item before issuing a locker release code.
+        </div>
+      </div>
+
+      {/* Main Form */}
+      <form onSubmit={handleSubmit} className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        {/* Section 1: Claimant Info */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-stone-900 pb-2 border-b border-stone-100 flex items-center space-x-2">
+            <User className="w-4 h-4 text-emerald-800" />
+            <span>1. Claimant Information</span>
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={claimantName}
+                onChange={(e) => setClaimantName(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden bg-stone-50/50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Citizen / Resident ID or Reference *
+              </label>
+              <input
+                type="text"
+                required
+                value={claimantId}
+                onChange={(e) => setClaimantId(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden bg-stone-50/50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                required
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden bg-stone-50/50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Contact Phone Number
+              </label>
+              <input
+                type="tel"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden bg-stone-50/50"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Detailed Proof of Ownership */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-sm font-bold text-stone-900 pb-2 border-b border-stone-100 flex items-center space-x-2">
+            <Lock className="w-4 h-4 text-emerald-800" />
+            <span>2. Verifiable Proof of Ownership</span>
+          </h3>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Specific Proof or Internal Contents *
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={proofOfOwnership}
+                onChange={(e) => setProofOfOwnership(e.target.value)}
+                placeholder="Describe items inside, serial number digits, lock codes, unique scratch locations, or names written inside..."
+                className="w-full rounded-2xl border border-stone-200 p-3.5 text-xs text-stone-800 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden leading-relaxed bg-stone-50/50"
+              />
+              <p className="text-[11px] text-stone-500 mt-1">
+                LGU officers will check these details against the physical item in storage before approving.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1">
+                Supporting Photo or Receipt (Optional URL or image)
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={supportingImageUrl}
+                  onChange={(e) => setSupportingImageUrl(e.target.value)}
+                  placeholder="Paste URL or upload image (e.g. photo with item, purchase receipt)"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-700 focus:outline-hidden bg-stone-50/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setSupportingImageUrl("https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80")}
+                  className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl shrink-0"
+                >
+                  Use Sample Photo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Date Submitted Info */}
+        <div className="pt-2 text-xs text-stone-500 flex items-center justify-between">
+          <span>Date of Claim: {new Date().toISOString().split("T")[0]}</span>
+          <span>Encrypted Submission • CivicFound Security v3</span>
+        </div>
+
+        {/* Form Submission */}
+        <div className="pt-4 border-t border-stone-100 flex items-center justify-end space-x-3">
+          <button
+            type="button"
+            onClick={() => setStudentView("match_details")}
+            className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1.5 active:scale-98"
+          >
+            <span>{isSubmitting ? "Submitting..." : "Submit Claim Request"}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
